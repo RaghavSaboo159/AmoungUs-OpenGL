@@ -13,7 +13,6 @@
 #include <fstream>
 
 #define STB_IMAGE_IMPLEMENTATION
-
 #include "stb_image.h"
 
 // Instantiate static variables
