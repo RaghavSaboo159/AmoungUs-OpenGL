@@ -12,6 +12,7 @@ set(CMAKE_DEPENDS_CHECK_CXX
   "/home/raghav/AmoungUs-OpenGL/source/resource_manager.cpp" "/home/raghav/AmoungUs-OpenGL/build/CMakeFiles/Hello-World.dir/source/resource_manager.cpp.o"
   "/home/raghav/AmoungUs-OpenGL/source/shader.cpp" "/home/raghav/AmoungUs-OpenGL/build/CMakeFiles/Hello-World.dir/source/shader.cpp.o"
   "/home/raghav/AmoungUs-OpenGL/source/sprite_renderer.cpp" "/home/raghav/AmoungUs-OpenGL/build/CMakeFiles/Hello-World.dir/source/sprite_renderer.cpp.o"
+  "/home/raghav/AmoungUs-OpenGL/source/text_renderer.cpp" "/home/raghav/AmoungUs-OpenGL/build/CMakeFiles/Hello-World.dir/source/text_renderer.cpp.o"
   "/home/raghav/AmoungUs-OpenGL/source/texture.cpp" "/home/raghav/AmoungUs-OpenGL/build/CMakeFiles/Hello-World.dir/source/texture.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")

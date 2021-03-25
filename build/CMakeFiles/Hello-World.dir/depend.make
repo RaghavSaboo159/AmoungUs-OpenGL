@@ -1665,6 +1665,8 @@ CMakeFiles/Hello-World.dir/source/sprite_renderer.cpp.o: ../source/sprite_render
 CMakeFiles/Hello-World.dir/source/sprite_renderer.cpp.o: ../source/sprite_renderer.h
 CMakeFiles/Hello-World.dir/source/sprite_renderer.cpp.o: ../source/texture.h
 
+CMakeFiles/Hello-World.dir/source/text_renderer.cpp.o: ../source/text_renderer.cpp
+
 CMakeFiles/Hello-World.dir/source/texture.cpp.o: ../libraries/glad/include/KHR/khrplatform.h
 CMakeFiles/Hello-World.dir/source/texture.cpp.o: ../libraries/glad/include/glad/glad.h
 CMakeFiles/Hello-World.dir/source/texture.cpp.o: ../source/texture.cpp

@@ -1665,6 +1665,8 @@ CMakeFiles/Hello-World.dir/source/sprite_renderer.cpp.o
  /home/raghav/AmoungUs-OpenGL/source/sprite_renderer.cpp
  /home/raghav/AmoungUs-OpenGL/source/sprite_renderer.h
  /home/raghav/AmoungUs-OpenGL/source/texture.h
+CMakeFiles/Hello-World.dir/source/text_renderer.cpp.o
+ /home/raghav/AmoungUs-OpenGL/source/text_renderer.cpp
 CMakeFiles/Hello-World.dir/source/texture.cpp.o
  ../libraries/glad/include/KHR/khrplatform.h
  ../libraries/glad/include/glad/glad.h

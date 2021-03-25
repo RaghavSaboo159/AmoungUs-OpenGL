@@ -51,6 +51,7 @@ public:
     unsigned int            Width, Height;
     std::vector<GameLevel>  Levels;
     unsigned int            Level;
+    unsigned int            Lives;
     // constructor/destructor
     Game(unsigned int width, unsigned int height);
     ~Game();
@@ -61,8 +62,11 @@ public:
     void Update(float dt);
     void Render();
     void DoCollisions();
+    // void DoEnemyCollisions();
     void ResetLevel();
     void ResetPlayer();
+    void Bfs(float dt);
+
 
 };
 
