@@ -60,14 +60,14 @@ void GameLevel::init(std::vector<std::vector<unsigned int>> tileData, unsigned i
     unsigned int width = tileData[0].size(); // note we can index vector at [0] since this function is only called if height > 0
     float unit_width = levelWidth / static_cast<float>(width), unit_height = levelHeight / height; 
     // initialize level tiles based on tileData
-            std::cout<<levelWidth<<" "<<levelHeight<<std::endl;
+            // std::cout<<levelWidth<<" "<<levelHeight<<std::endl;
 
     for (unsigned int y = 0; y < height; ++y)
     {
         for (unsigned int x = 0; x < width; ++x)
         {
             // check block type from level data (2D level array)
-            std::cout<<unit_width*x<<" "<<unit_height * y<<std::endl;
+            // std::cout<<unit_width*x<<" "<<unit_height * y<<std::endl;
             if (tileData[y][x] == 1) // solid
             {
                 glm::vec2 pos(unit_width * x, unit_height * y);

@@ -21,7 +21,7 @@ using namespace std;
 
 // Game-related State data
 SpriteRenderer  *Renderer;
-GameObject      *Player;
+// GameObject      *Player;
 BallObject     *Ball,*Ball2; 
 // TextRenderer  *Text;
 
@@ -38,7 +38,7 @@ Game::Game(unsigned int width, unsigned int height)
 Game::~Game()
 {
     delete Renderer;
-    delete Player;
+    // delete Player;
     delete Ball;
     delete Ball2;
 
@@ -53,6 +53,8 @@ void Game::Init()
         static_cast<float>(this->Height), 0.0f, -1.0f, 1.0f);
     ResourceManager::GetShader("sprite").Use().SetInteger("image", 0);
     ResourceManager::GetShader("sprite").SetMatrix4("projection", projection);
+    ResourceManager::GetShader("sprite").SetFloat("lightCutOff", 50.0f);
+    ResourceManager::GetShader("sprite").SetVector3f("lightColor", 0.5f,0.75f,0.8f);
     // set render-specific controls
     Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
     // load ../source/textures
@@ -72,12 +74,14 @@ void Game::Init()
     this->Levels.push_back(four);
     this->Level = 0;
     // configure game objects
-    glm::vec2 playerPos = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
-    Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("paddle"));
+    // glm::vec2 playerPos = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
+    // Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("paddle"));
     glm::vec2 ballPos = glm::vec2(-0.102f, 116.805f);
     Ball = new BallObject(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY,ResourceManager::GetTexture("face"));
     glm::vec2 ballPos2 = glm::vec2(700.0f, 116.805f);
     Ball2 = new BallObject(ballPos2, BALL_RADIUS, INITIAL_BALL_VELOCITY,ResourceManager::GetTexture("paddle"));
+    ResourceManager::GetShader("sprite").SetVector3f("lightPos", Ball->Position.x,Ball->Position.y,0.0f);
+
     // Text = new TextRenderer(this->Width, this->Height);
     // Text->Load("fonts/ocraext.TTF", 24);
 }
@@ -87,6 +91,8 @@ void Game::Update(float dt)
     // Ball2->Move(dt, this->Width);
     this->DoCollisions();
     this->Bfs(dt);
+    ResourceManager::GetShader("sprite").SetVector3f("lightPos", Ball->Position.x,Ball->Position.y,0.0f);
+
     //     if (Ball->Position.y >= this->Height) // did ball reach bottom edge?
     // {
     //     this->ResetLevel();
@@ -145,7 +151,7 @@ void Game::Render()
         // draw level
         this->Levels[this->Level].Draw(*Renderer);
         // draw player
-        Player->Draw(*Renderer);
+        // Player->Draw(*Renderer);Freset
         Ball->Draw(*Renderer);
         Ball2->Draw(*Renderer);
 
@@ -168,9 +174,9 @@ void Game::ResetLevel()
 void Game::ResetPlayer()
 {
     // reset player/ball stats
-    Player->Size = PLAYER_SIZE;
-    Player->Position = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
-    Ball->Reset(Player->Position + glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -(BALL_RADIUS * 2.0f)), INITIAL_BALL_VELOCITY);
+    // Player->Size = PLAYER_SIZE;
+    // Player->Position = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
+    Ball->Reset(glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -(BALL_RADIUS * 2.0f)), INITIAL_BALL_VELOCITY);
 }
 
 // Collision CheckCollision(BallObject &one, GameObject &two);
