@@ -50,3 +50,8 @@ endif()
 pkg_check_modules(GLEW REQUIRED glew)
 include_directories(${GLEW_INCLUDE_DIRS})
 target_link_libraries (${PROJECT_NAME} ${GLEW_LIBRARIES})
+
+set(FREETYPE_INCLUDE_DIRS /usr/include/)
+set(FREETYPE_LIBRARY freetype)
+find_package(Freetype REQUIRED)
+target_link_libraries(${PROJECT_NAME} ${FREETYPE_LIBRARY})

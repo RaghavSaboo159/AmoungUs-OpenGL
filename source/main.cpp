@@ -58,7 +58,9 @@ int main(int argc, char *argv[])
 
     // initialize game
     // ---------------
+    Breakout.MazeGen();
     Breakout.Init();
+
 
     // deltaTime variables
     // -------------------

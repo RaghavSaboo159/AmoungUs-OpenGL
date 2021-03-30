@@ -7,7 +7,7 @@
 ** option) any later version.
 ******************************************************************/
 #include "sprite_renderer.h"
-
+#include <iostream>
 
 SpriteRenderer::SpriteRenderer(Shader shader)
 {
@@ -36,6 +36,7 @@ void SpriteRenderer::DrawSprite(Texture2D texture, glm::vec2 position, glm::vec2
     this->shader.SetMatrix4("model", model);
 
     // render textured quad
+
     this->shader.SetVector3f("spriteColor", color);
 
     glActiveTexture(GL_TEXTURE0);

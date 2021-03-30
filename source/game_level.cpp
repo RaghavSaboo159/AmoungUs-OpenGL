@@ -68,15 +68,49 @@ void GameLevel::init(std::vector<std::vector<unsigned int>> tileData, unsigned i
         {
             // check block type from level data (2D level array)
             // std::cout<<unit_width*x<<" "<<unit_height * y<<std::endl;
-            if (tileData[y][x] == 1) // solid
-            {
                 glm::vec2 pos(unit_width * x, unit_height * y);
                 glm::vec2 size(unit_width, unit_height);
+
+            if (tileData[y][x] == 1){
                 GameObject obj(pos, size, ResourceManager::GetTexture("block_solid"), glm::vec3(0.8f, 0.8f, 0.7f));
                 obj.IsSolid = true;
+                obj.val=1;
                 this->Bricks.push_back(obj);
             }
-            else if (tileData[y][x] > 1)	// non-solid; now determine its color based on level data
+           else if (tileData[y][x] == 2){
+                GameObject obj(pos, size, ResourceManager::GetTexture("coin"), glm::vec3(1.0f, 1.0f, 1.0f));
+                obj.val=2;
+                obj.IsSolid = false;
+                obj.Destroyed=true;
+                this->Bricks.push_back(obj);
+            }
+            else if (tileData[y][x] == 3){
+                GameObject obj(pos, size, ResourceManager::GetTexture("win"), glm::vec3(1.0f, 1.0f, 1.0f));
+                obj.val=3;
+                obj.IsSolid = false;
+                this->Bricks.push_back(obj);
+            }
+            else if (tileData[y][x] == 4){
+                GameObject obj(pos, size, ResourceManager::GetTexture("red"), glm::vec3(1.0f, 1.0f, 1.0f));
+                obj.val=4;
+                obj.IsSolid = false;
+                this->Bricks.push_back(obj);
+            }
+            else if (tileData[y][x] == 5){
+                GameObject obj(pos, size, ResourceManager::GetTexture("poweron"), glm::vec3(1.0f, 1.0f, 1.0f));
+                obj.val=5;
+                obj.IsSolid = false;
+                this->Bricks.push_back(obj);
+            }
+           else if (tileData[y][x] == 6){
+                GameObject obj(pos, size, ResourceManager::GetTexture("spike"), glm::vec3(1.0f, 1.0f, 1.0f));
+                obj.val=6;
+                obj.IsSolid = false;
+                obj.Destroyed=true;
+                this->Bricks.push_back(obj);
+            }
+
+            else if (tileData[y][x] > 4)	// non-solid; now determine its color based on level data
             {
                 glm::vec3 color = glm::vec3(1.0f); // original: white
                 if (tileData[y][x] == 2)

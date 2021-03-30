@@ -19,3 +19,7 @@ void GameObject::Draw(SpriteRenderer &renderer)
 {
     renderer.DrawSprite(this->Sprite, this->Position, this->Size, this->Rotation, this->Color);
 }
+void GameObject::ChangeSprite(Texture2D sprite){
+        this->Sprite=sprite;
+    // renderer.DrawSprite(this->Sprite, this->Position, this->Size, this->Rotation, this->Color);
+}

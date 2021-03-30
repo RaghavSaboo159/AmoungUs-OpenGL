@@ -51,12 +51,21 @@ public:
     unsigned int            Width, Height;
     std::vector<GameLevel>  Levels;
     unsigned int            Level;
-    unsigned int            Lives;
+    unsigned int            Health;
+    unsigned int            Score;
+    bool                    Win;
+    bool                    Destroy;
+    bool                    Display;
+    bool                    lose;
+
+
     // constructor/destructor
     Game(unsigned int width, unsigned int height);
     ~Game();
     // initialize game state (load all shaders/textures/levels)
     void Init();
+    void MazeGen();
+
     // game loop
     void ProcessInput(float dt);
     void Update(float dt);

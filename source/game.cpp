@@ -10,7 +10,7 @@
 #include "resource_manager.h"
 #include "sprite_renderer.h"
 #include "game_object.h"
-// #include "text_renderer.h"
+#include "text_renderer.h"
 #include "ball_object_collisions.h"
 
 #include <sstream>
@@ -23,16 +23,20 @@ using namespace std;
 SpriteRenderer  *Renderer;
 // GameObject      *Player;
 BallObject     *Ball,*Ball2; 
-// TextRenderer  *Text;
+TextRenderer  *Text;
 
 
   
   
 
 Game::Game(unsigned int width, unsigned int height) 
-    : State(GAME_ACTIVE), Keys(), Width(width), Height(height)
-{ 
-
+    : State(GAME_ACTIVE), Keys(), Width(width), Height(height){ 
+    this->Win=false;
+    this->Health=5;
+    this->Destroy=false;
+    this->Display=false;
+    this->Score=0;
+    this->lose=false;
 }
 
 Game::~Game()
@@ -41,11 +45,75 @@ Game::~Game()
     // delete Player;
     delete Ball;
     delete Ball2;
+    delete Text;
 
 }
 
+void Game::MazeGen(){
+        int n=11;
+
+        vector<vector<int>> vec( n, vector<int> (n, 1));
+        stack <pair<int,int>>st;
+        int x=0;
+        int y=0;
+        cout<<x<<" "<<y<<endl;
+        st.push({x,y});
+        vec[x][y]=0;
+        int dx[]={0,0,2,-2};
+        int dy[]={2,-2,0,0};
+        while(!st.empty()){
+            pair<int ,int > p= st.top();
+            st.pop();
+            int x=p.first;
+            int y=p.second;
+            bool f=false;
+            vector<pair<int,int>>vp;
+            for(int i=0;i<4;i++)
+            {
+                int xx=x+dx[i];
+                int xy=y+dy[i];
+                if(xx>=0 && xx<n && xy>=0 && xy<n)
+                {
+                    if(vec[xx][xy]==1){
+                        vp.push_back({xx,xy});
+                        f=true;
+                    }
+                }
+
+            }
+            if(f){
+                st.push(p);
+                int itr=rand()%vp.size();
+                // cout<<itr<<" "<<vp.size()<<endl;
+                vec[(x+vp[itr].first)/2][(y+vp[itr].second)/2]=0;
+                vec[(vp[itr].first)][(vp[itr].second)]=0;
+                st.push(vp[itr]);
+
+            }
+        }   
+            ofstream MyFile("../source/levels/one.lvl");
+
+            // Write to the file
+            for(int i=0;i<n;i++)
+            {
+                MyFile<<1<<" ";
+             
+                for(int j=0;j<n;j++)
+                MyFile<<vec[i][j]<<" ";
+                MyFile <<endl;
+
+            }
+            for(int i=0;i<=n;i++)
+                MyFile<<1<<" ";
+                MyFile <<endl;
+
+            // Close the file
+            MyFile.close();
+
+} 
 void Game::Init()
 {
+    
     // load shaders
     ResourceManager::LoadShader("../source/shaders/sprite.vs", "../source/shaders/sprite.frag", nullptr, "sprite");
     // configure shaders
@@ -53,25 +121,35 @@ void Game::Init()
         static_cast<float>(this->Height), 0.0f, -1.0f, 1.0f);
     ResourceManager::GetShader("sprite").Use().SetInteger("image", 0);
     ResourceManager::GetShader("sprite").SetMatrix4("projection", projection);
-    ResourceManager::GetShader("sprite").SetFloat("lightCutOff", 50.0f);
-    ResourceManager::GetShader("sprite").SetVector3f("lightColor", 0.5f,0.75f,0.8f);
+    ResourceManager::GetShader("sprite").SetFloat("lightCutOff", 5000.0f);
+    ResourceManager::GetShader("sprite").SetVector3f("lightColor", 1.0f,1.0f,1.0f);
     // set render-specific controls
     Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
     // load ../source/textures
-    ResourceManager::LoadTexture("../source/textures/background.jpg", false, "background");
+    ResourceManager::LoadTexture("../source/textures/download.png", false, "background");
     ResourceManager::LoadTexture("../source/textures/awesomeface.png", true, "face");
     ResourceManager::LoadTexture("../source/textures/block.png", false, "block");
     ResourceManager::LoadTexture("../source/textures/block_solid.png", false, "block_solid");
     ResourceManager::LoadTexture("../source/textures/pink_player.png", true, "paddle");
+    ResourceManager::LoadTexture("../source/textures/coin.jpg", false, "coin");
+    ResourceManager::LoadTexture("../source/textures/win.jpeg", false, "win");
+    ResourceManager::LoadTexture("../source/textures/win.jpeg", false, "win");
+    ResourceManager::LoadTexture("../source/textures/red.jpeg", false, "red");
+    ResourceManager::LoadTexture("../source/textures/green.jpeg", false, "green");
+    ResourceManager::LoadTexture("../source/textures/poweron.jpeg", false, "poweron");
+    ResourceManager::LoadTexture("../source/textures/spike.png", false, "spike");
+    
+    Text = new TextRenderer(this->Width, this->Height);
+    Text->Load("../source/fonts/OCRAEXT.TTF", 24);
     // load levels
-    GameLevel one; one.Load("../source/levels/one.lvl", this->Width, this->Height / 2);
-    GameLevel two; two.Load("../source/levels/two.lvl", this->Width, this->Height / 2);
-    GameLevel three; three.Load("../source/levels/three.lvl", this->Width, this->Height / 2);
-    GameLevel four; four.Load("../source/levels/four.lvl", this->Width, this->Height / 2);
+    GameLevel one; one.Load("../source/levels/one.lvl", this->Width, this->Height );
+    // GameLevel two; two.Load("../source/levels/two.lvl", this->Width, this->Height / 2);
+    // GameLevel three; three.Load("../source/levels/three.lvl", this->Width, this->Height / 2);
+    // GameLevel four; four.Load("../source/levels/four.lvl", this->Width, this->Height / 2);
     this->Levels.push_back(one);
-    this->Levels.push_back(two);
-    this->Levels.push_back(three);
-    this->Levels.push_back(four);
+    // this->Levels.push_back(two);
+    // this->Levels.push_back(three);
+    // this->Levels.push_back(four);
     this->Level = 0;
     // configure game objects
     // glm::vec2 playerPos = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
@@ -88,17 +166,26 @@ void Game::Init()
 
 void Game::Update(float dt)
 {
-    // Ball2->Move(dt, this->Width);
     this->DoCollisions();
     this->Bfs(dt);
     ResourceManager::GetShader("sprite").SetVector3f("lightPos", Ball->Position.x,Ball->Position.y,0.0f);
+    if(this->Win==true && this->State==GAME_ACTIVE){
+        this->State = GAME_WIN;
 
-    //     if (Ball->Position.y >= this->Height) // did ball reach bottom edge?
-    // {
-    //     this->ResetLevel();
-    //     this->ResetPlayer();
-    // }
-
+    }
+    if(this->Display==true){
+         for (GameObject &box : this->Levels[this->Level].Bricks){
+             if(box.val==2 || box.val==6)
+                box.Destroyed=false;
+         }
+         this->Display=false;
+    }
+    if(!this->Destroy && this->State==GAME_ACTIVE && fabs(Ball->Position.x - Ball2->Position.x )<=10*dt && fabs(Ball->Position.y - Ball2->Position.y )<=10*dt ){
+        this->State = GAME_WIN;
+        this->lose=true;
+    
+    }
+    
 }
 
 void Game::ProcessInput(float dt)
@@ -109,19 +196,15 @@ void Game::ProcessInput(float dt)
         // move playerboard
         if (this->Keys[GLFW_KEY_A])
         {
-            if (Ball->Position.x >= 0.0f){
+            if (Ball->Position.x >= 0.0f)
                 Ball->Position.x -= velocity;
-                // if (Ball->Stuck)
-                    // Ball->Position.x -= velocity;
-            }
+            
         }
         if (this->Keys[GLFW_KEY_D])
         {
-            if (Ball->Position.x <= this->Width - Ball->Size.x){
+            if (Ball->Position.x <= this->Width - Ball->Size.x)
                 Ball->Position.x += velocity;
-                //  if (Ball->Stuck)
-                    // Ball->Position.x += velocity;
-            }
+            
         }
         if (this->Keys[GLFW_KEY_W])
         {
@@ -133,41 +216,42 @@ void Game::ProcessInput(float dt)
             if (Ball->Position.y <= this->Height - Ball->Size.y)
                 Ball->Position.y += velocity;
         }
-        // if (this->Keys[GLFW_KEY_SPACE])
-        //     Ball->Stuck = false;
-        // std::stringstream ss; ss << this->Lives;
-        // Text->RenderText("Lives:" + ss.str(), 5.0f, 5.0f, 1.0f);
-
     }
-//  std::cout<<Player->Position.x<<" "<<Player->Position.y<<std::endl;
 }
 
 void Game::Render()
 {
-    if(this->State == GAME_ACTIVE)
-    {
+    if(this->State == GAME_ACTIVE){
         // draw background
         Renderer->DrawSprite(ResourceManager::GetTexture("background"), glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f);
         // draw level
         this->Levels[this->Level].Draw(*Renderer);
-        // draw player
-        // Player->Draw(*Renderer);Freset
         Ball->Draw(*Renderer);
-        Ball2->Draw(*Renderer);
+        if(this->Destroy==false)
+            Ball2->Draw(*Renderer);
+        std::stringstream sh; sh << this->Health;
+        std::stringstream ss; ss << this->Score;
 
+        Text->RenderText("Lives:" + sh.str()+ " Score:" +  ss.str(), 5.0f, 5.0f, 1.0f,glm::vec3(1.0f, 0.5f, 0.0f));
     }
+    if (this->State == GAME_WIN && this->Win)
+        Text->RenderText("You WON!!!", 320.0f, this->Height / 2.0f - 20.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+    // Text->RenderText("Press ENTER to retry or ESC to quit", 130.0f, this->Height / 2.0f, 1.0f, glm::vec3(1.0f, 1.0f, 0.0f));
+    if (this->State == GAME_WIN && this->lose)
+        Text->RenderText("You LOST!!!", 320.0f, this->Height / 2.0f - 20.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+
 }
 void Game::ResetLevel()
 {
-    if (this->Level == 0)
+    // if (this->Level == 0)
         this->Levels[0].Load("../source/levels/one.lvl", this->Width, this->Height / 2);
-    else if (this->Level == 1)
-        this->Levels[1].Load("../source/levels/two.lvl", this->Width, this->Height / 2);
-    else if (this->Level == 2)
-        this->Levels[2].Load("../source/levels/three.lvl", this->Width, this->Height / 2);
-    else if (this->Level == 3)
-        this->Levels[3].Load("../source/levels/four.lvl", this->Width, this->Height / 2);
-    this->Lives = 3;
+    // else if (this->Level == 1)
+    //     this->Levels[1].Load("../source/levels/two.lvl", this->Width, this->Height / 2);
+    // else if (this->Level == 2)
+    //     this->Levels[2].Load("../source/levels/three.lvl", this->Width, this->Height / 2);
+    // else if (this->Level == 3)
+    //     this->Levels[3].Load("../source/levels/four.lvl", this->Width, this->Height / 2);
+    this->Health = 5;
 
 }
 
@@ -235,8 +319,22 @@ void Game::DoCollisions()
             if (std::get<0>(collision)) // if collision is true
             {
                 // destroy block if not solid
-                if (!box.IsSolid)
+                if(box.val==4){
+                    box.ChangeSprite(ResourceManager::GetTexture("green"));
+                    this->Destroy=true;
+                }
+                if(box.val==2)
+                    this->Score++;
+                if(box.val==6 && this->Score)
+                    this->Score--;
+
+                if(box.val==3)
+                    this->Win=true;
+                if(box.val==5)
+                    this->Display=true;
+                if (!box.IsSolid && box.val!=4)
                     box.Destroyed = true;
+
                 // collision resolution
                 Direction dir = std::get<1>(collision);
                 glm::vec2 diff_vector = std::get<2>(collision);
@@ -264,10 +362,8 @@ void Game::DoCollisions()
             collision = CheckCollision(Ball2->Position, box);
             if (std::get<0>(collision)) // if collision is true
             {
-                // destroy block if not solid
-                if (!box.IsSolid)
-                    box.Destroyed = true;
-                // collision resolution
+                // if (!box.IsSolid)
+                //     box.Destroyed = true;
                 Direction dir = std::get<1>(collision);
                 glm::vec2 diff_vector = std::get<2>(collision);
                 if (dir == LEFT || dir == RIGHT) // horizontal collision
