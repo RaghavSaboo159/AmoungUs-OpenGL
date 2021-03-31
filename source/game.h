@@ -13,7 +13,10 @@
 #include <GLFW/glfw3.h>
 
 #include "game_level.h"
-
+#include <bits/stdc++.h>
+#include <ctime>
+//   clock_t begin = clock();
+ using namespace std;
 // Represents the current state of the game
 enum GameState {
     GAME_ACTIVE,
@@ -31,13 +34,13 @@ typedef std::tuple<bool, Direction, glm::vec2> Collision;
 
 
 // Initial size of the player paddle
-const glm::vec2 PLAYER_SIZE(40.0f, 30.0f);
+const glm::vec2 PLAYER_SIZE(25.0f, 20.0f);
 // Initial velocity of the player paddle
 const float PLAYER_VELOCITY(500.0f);
 
 const glm::vec2 INITIAL_BALL_VELOCITY(100.0f, -350.0f);
 // Radius of the ball object
-const float BALL_RADIUS = 12.5f;
+const float BALL_RADIUS = 11.5f;
 
 // Game holds all game-related state and functionality.
 // Combines all game-related data into a single class for
@@ -52,11 +55,22 @@ public:
     std::vector<GameLevel>  Levels;
     unsigned int            Level;
     unsigned int            Health;
-    unsigned int            Score;
+    float                   Score;
     bool                    Win;
     bool                    Destroy;
     bool                    Display;
     bool                    lose;
+    unsigned int            move;
+    unsigned int            fx;
+    unsigned int            fy;
+    unsigned int            task;
+    clock_t                 begin;
+    clock_t                 now;
+    bool                    light;
+
+    vector<pair<int,int>>   coords;
+    
+
 
 
     // constructor/destructor
@@ -70,11 +84,11 @@ public:
     void ProcessInput(float dt);
     void Update(float dt);
     void Render();
-    void DoCollisions();
-    // void DoEnemyCollisions();
+    bool DoCollisions();
     void ResetLevel();
     void ResetPlayer();
-    void Bfs(float dt);
+    void BFS(float dt);
+
 
 
 };

@@ -16,6 +16,8 @@
 #include <sstream>
 #include <iostream>
 #include<bits/stdc++.h>
+#include <ctime>
+
 using namespace std;
 
 
@@ -37,6 +39,9 @@ Game::Game(unsigned int width, unsigned int height)
     this->Display=false;
     this->Score=0;
     this->lose=false;
+    this->move=0;
+    this->task=0;
+    this->light=true;
 }
 
 Game::~Game()
@@ -48,19 +53,65 @@ Game::~Game()
     delete Text;
 
 }
-
+bool CheckCollision(GameObject &one, GameObject &two) // AABB - AABB collision
+{
+    // collision x-axis?
+    bool collisionX = one.Position.x + one.Size.x > two.Position.x &&
+        two.Position.x + two.Size.x > one.Position.x;
+    // collision y-axis?
+    bool collisionY = one.Position.y + one.Size.y > two.Position.y &&
+        two.Position.y + two.Size.y > one.Position.y;
+    // collision only if on both axes
+    return collisionX && collisionY;
+} 
+bool Game::DoCollisions()
+{
+    bool result=false;
+    for (GameObject &box : this->Levels[this->Level].Bricks)
+    {
+        if (!box.Destroyed)
+        {
+            bool collision = CheckCollision(*Ball, box);
+            if (collision) // if collision is true
+            {
+                if(box.val==1)
+                    result=true;
+                if(box.val==4){
+                    box.ChangeSprite(ResourceManager::GetTexture("green"));
+                    if(!this->Destroy)
+                        this->task++;
+                    this->Destroy=true;
+                }
+                if(box.val==2)
+                    this->Score++;
+                if(box.val==6)
+                    this->Health--;
+                if(box.val==3)
+                    this->Win=true;
+                if(box.val==5){
+                    this->Display=true;
+                    this->task++;
+                }
+                if (!box.IsSolid && box.val!=4)
+                    box.Destroyed = true;
+            }
+        }
+    }
+    return result;
+} 
 void Game::MazeGen(){
-        int n=11;
-
+        int n=25;
         vector<vector<int>> vec( n, vector<int> (n, 1));
         stack <pair<int,int>>st;
+        vector<pair<int,int>>tempc;
         int x=0;
         int y=0;
-        cout<<x<<" "<<y<<endl;
+        // cout<<x<<" "<<y<<endl;
         st.push({x,y});
         vec[x][y]=0;
         int dx[]={0,0,2,-2};
         int dy[]={2,-2,0,0};
+        srand(time(NULL));
         while(!st.empty()){
             pair<int ,int > p= st.top();
             st.pop();
@@ -90,25 +141,71 @@ void Game::MazeGen(){
                 st.push(vp[itr]);
 
             }
-        }   
-            ofstream MyFile("../source/levels/one.lvl");
+        }
+        vec[24][24]=3;
+        for(int i=0;i<n;i++){
+            for(int j=0;j<n;j++)
+                if(vec[i][j]==0)
+                    tempc.push_back({i,j});
+        }
+        srand(time(NULL));
+        for(int i=0;i<3;i++)
+        {
+            int itr=rand()%tempc.size();
+            if(vec[tempc[itr].first][tempc[itr].second]==0)
+                vec[tempc[itr].first][tempc[itr].second]=2;
+            else 
+            i--;
 
-            // Write to the file
-            for(int i=0;i<n;i++)
-            {
-                MyFile<<1<<" ";
-             
-                for(int j=0;j<n;j++)
-                MyFile<<vec[i][j]<<" ";
-                MyFile <<endl;
+        }
+        for(int i=0;i<3;i++)
+        {
+            // srand(time(NULL));
+            int itr=rand()%tempc.size();
+            if(vec[tempc[itr].first][tempc[itr].second]==0)
+                vec[tempc[itr].first][tempc[itr].second]=6;
+            else 
+            i--;
 
+        }
+        for(int i=0;i<1;i++)
+        {
+            // srand(time(NULL));
+            int itr=rand()%tempc.size();
+            if(vec[tempc[itr].first][tempc[itr].second]==0)
+                vec[tempc[itr].first][tempc[itr].second]=5;
+            else 
+            i--;
+
+        }
+        for(int i=0;i<1;i++)
+        {
+            int itr=rand()%tempc.size();
+            if(vec[tempc[itr].first][tempc[itr].second]==0)
+                vec[tempc[itr].first][tempc[itr].second]=4;
+            else 
+            i--;
+
+        }
+
+        ofstream MyFile("../source/levels/one.lvl");
+
+        // Write to the file
+        for(int i=0;i<n;i++)
+        {
+            for(int j=0;j<n;j++){
+            MyFile<<vec[i][j]<<" ";
+            if(vec[i][j]!=1)
+            this->coords.push_back({i,j});
             }
-            for(int i=0;i<=n;i++)
-                MyFile<<1<<" ";
-                MyFile <<endl;
+            MyFile <<endl;
 
-            // Close the file
-            MyFile.close();
+        }
+        MyFile.close();
+        //     for(int i=0;i<this->coords.size();i++){
+        // cout<<this->coords[i].first<<" "<<this->coords[i].second<<endl;
+    // }
+
 
 } 
 void Game::Init()
@@ -127,12 +224,12 @@ void Game::Init()
     Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
     // load ../source/textures
     ResourceManager::LoadTexture("../source/textures/download.png", false, "background");
-    ResourceManager::LoadTexture("../source/textures/awesomeface.png", true, "face");
+    ResourceManager::LoadTexture("../source/textures/pink_player.png", true, "face");
     ResourceManager::LoadTexture("../source/textures/block.png", false, "block");
     ResourceManager::LoadTexture("../source/textures/block_solid.png", false, "block_solid");
-    ResourceManager::LoadTexture("../source/textures/pink_player.png", true, "paddle");
+    ResourceManager::LoadTexture("../source/textures/awesomeface.png", true, "paddle");
     ResourceManager::LoadTexture("../source/textures/coin.jpg", false, "coin");
-    ResourceManager::LoadTexture("../source/textures/win.jpeg", false, "win");
+    // ResourceManager::LoadTexture("../source/textures/win.jpeg", false, "win");
     ResourceManager::LoadTexture("../source/textures/win.jpeg", false, "win");
     ResourceManager::LoadTexture("../source/textures/red.jpeg", false, "red");
     ResourceManager::LoadTexture("../source/textures/green.jpeg", false, "green");
@@ -143,32 +240,28 @@ void Game::Init()
     Text->Load("../source/fonts/OCRAEXT.TTF", 24);
     // load levels
     GameLevel one; one.Load("../source/levels/one.lvl", this->Width, this->Height );
-    // GameLevel two; two.Load("../source/levels/two.lvl", this->Width, this->Height / 2);
-    // GameLevel three; three.Load("../source/levels/three.lvl", this->Width, this->Height / 2);
-    // GameLevel four; four.Load("../source/levels/four.lvl", this->Width, this->Height / 2);
     this->Levels.push_back(one);
-    // this->Levels.push_back(two);
-    // this->Levels.push_back(three);
-    // this->Levels.push_back(four);
     this->Level = 0;
-    // configure game objects
-    // glm::vec2 playerPos = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
-    // Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("paddle"));
-    glm::vec2 ballPos = glm::vec2(-0.102f, 116.805f);
+    glm::vec2 ballPos = glm::vec2(0.5, 0.4);
     Ball = new BallObject(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY,ResourceManager::GetTexture("face"));
-    glm::vec2 ballPos2 = glm::vec2(700.0f, 116.805f);
+    int random=this->coords.size()-2;
+    // if (random==0)
+    // random++;
+    glm::vec2 ballPos2 = glm::vec2(this->coords[random].second*32,this->coords[random].first*24);
     Ball2 = new BallObject(ballPos2, BALL_RADIUS, INITIAL_BALL_VELOCITY,ResourceManager::GetTexture("paddle"));
-    ResourceManager::GetShader("sprite").SetVector3f("lightPos", Ball->Position.x,Ball->Position.y,0.0f);
+    ResourceManager::GetShader("sprite").Use().SetVector3f("lightPos", Ball->Position.x,Ball->Position.y,0.0f);
 
     // Text = new TextRenderer(this->Width, this->Height);
     // Text->Load("fonts/ocraext.TTF", 24);
+    this->begin=clock();
 }
 
 void Game::Update(float dt)
 {
-    this->DoCollisions();
-    this->Bfs(dt);
-    ResourceManager::GetShader("sprite").SetVector3f("lightPos", Ball->Position.x,Ball->Position.y,0.0f);
+    this->BFS(dt);
+    // cout<<Ball->Position.x<<" "<<Ball->Position.y<<endl;
+    ResourceManager::GetShader("sprite").Use().SetVector3f("lightPos", Ball->Position.x,Ball->Position.y,0.0f);
+
     if(this->Win==true && this->State==GAME_ACTIVE){
         this->State = GAME_WIN;
 
@@ -180,12 +273,34 @@ void Game::Update(float dt)
          }
          this->Display=false;
     }
-    if(!this->Destroy && this->State==GAME_ACTIVE && fabs(Ball->Position.x - Ball2->Position.x )<=10*dt && fabs(Ball->Position.y - Ball2->Position.y )<=10*dt ){
+    if(!this->Destroy && this->State==GAME_ACTIVE && CheckCollision(*Ball,*Ball2) ){
         this->State = GAME_WIN;
         this->lose=true;
     
     }
+    if(this->Health==0 && this->State==GAME_ACTIVE ){
+        this->State = GAME_WIN;
+        this->lose=true;
     
+    }
+    this->now = clock();
+    double elapsed_secs = double(this->now - this->begin) / CLOCKS_PER_SEC;
+    double time_left=100-elapsed_secs;
+    if(time_left<0 && this->State==GAME_ACTIVE){
+        this->State = GAME_WIN;
+        this->lose=true;
+
+    }
+    if(!this->light){
+    ResourceManager::GetShader("sprite").Use().SetFloat("lightCutOff", 50.0f);
+    this->Score+=dt;
+    }
+    else{
+    ResourceManager::GetShader("sprite").Use().SetFloat("lightCutOff", 5000.0f);
+
+    }
+
+
 }
 
 void Game::ProcessInput(float dt)
@@ -196,26 +311,57 @@ void Game::ProcessInput(float dt)
         // move playerboard
         if (this->Keys[GLFW_KEY_A])
         {
-            if (Ball->Position.x >= 0.0f)
+            if (Ball->Position.x >= 0.0f){
                 Ball->Position.x -= velocity;
+                bool ans=this->DoCollisions();
+                if(ans)
+                Ball->Position.x += velocity;
+
+            }
             
         }
         if (this->Keys[GLFW_KEY_D])
         {
-            if (Ball->Position.x <= this->Width - Ball->Size.x)
+            if (Ball->Position.x <= this->Width - Ball->Size.x){
                 Ball->Position.x += velocity;
+                bool ans=this->DoCollisions();
+                if(ans)
+                Ball->Position.x -= velocity;
+
+            }
             
         }
         if (this->Keys[GLFW_KEY_W])
         {
-            if (Ball->Position.y >= 0.0f)
+            if (Ball->Position.y >= 0.0f){
                 Ball->Position.y -= velocity;
+                bool ans=this->DoCollisions();
+                if(ans)
+                Ball->Position.y += velocity;
+
+                }
         }
         if (this->Keys[GLFW_KEY_S])
         {
-            if (Ball->Position.y <= this->Height - Ball->Size.y)
+            if (Ball->Position.y <= this->Height - Ball->Size.y){
                 Ball->Position.y += velocity;
+                bool ans=this->DoCollisions();
+                if(ans)
+                Ball->Position.y -= velocity;
+
+            }
         }
+        if (this->Keys[GLFW_KEY_L])
+        {
+            if(this->light==false)
+                this->light=true;
+            else
+                this->light=false;
+
+        }
+        // ResourceManager::GetShader("sprite").SetVector3f("lightPos", Ball->Position.x,Ball->Position.y,0.0f);
+
+
     }
 }
 
@@ -223,16 +369,24 @@ void Game::Render()
 {
     if(this->State == GAME_ACTIVE){
         // draw background
+        // ResourceManager::GetShader("sprite").SetVector3f("lightPos", Ball->Position.x,Ball->Position.y,0.0f);
+
         Renderer->DrawSprite(ResourceManager::GetTexture("background"), glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f);
         // draw level
         this->Levels[this->Level].Draw(*Renderer);
         Ball->Draw(*Renderer);
         if(this->Destroy==false)
             Ball2->Draw(*Renderer);
+        this->now = clock();
+        double elapsed_secs = double(this->now - this->begin) / CLOCKS_PER_SEC;
+        double time_left=100-elapsed_secs;
         std::stringstream sh; sh << this->Health;
         std::stringstream ss; ss << this->Score;
+        std::stringstream st; st << this->task;
+        std::stringstream sti; sti << time_left;
 
-        Text->RenderText("Lives:" + sh.str()+ " Score:" +  ss.str(), 5.0f, 5.0f, 1.0f,glm::vec3(1.0f, 0.5f, 0.0f));
+
+        Text->RenderText("Lives:" + sh.str()+ " Score:" +  ss.str()+ " Tasks: " + st.str()+ "/2 Time Left:" + sti.str() , 5.0f, 5.0f, 1.0f,glm::vec3(1.0f, 0.5f, 0.0f));
     }
     if (this->State == GAME_WIN && this->Win)
         Text->RenderText("You WON!!!", 320.0f, this->Height / 2.0f - 20.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -243,259 +397,183 @@ void Game::Render()
 }
 void Game::ResetLevel()
 {
-    // if (this->Level == 0)
-        this->Levels[0].Load("../source/levels/one.lvl", this->Width, this->Height / 2);
-    // else if (this->Level == 1)
-    //     this->Levels[1].Load("../source/levels/two.lvl", this->Width, this->Height / 2);
-    // else if (this->Level == 2)
-    //     this->Levels[2].Load("../source/levels/three.lvl", this->Width, this->Height / 2);
-    // else if (this->Level == 3)
-    //     this->Levels[3].Load("../source/levels/four.lvl", this->Width, this->Height / 2);
+    this->Levels[0].Load("../source/levels/one.lvl", this->Width, this->Height / 2);
     this->Health = 5;
 
 }
 
-void Game::ResetPlayer()
-{
-    // reset player/ball stats
-    // Player->Size = PLAYER_SIZE;
-    // Player->Position = glm::vec2(this->Width / 2.0f - PLAYER_SIZE.x / 2.0f, this->Height - PLAYER_SIZE.y);
+void Game::ResetPlayer(){
     Ball->Reset(glm::vec2(PLAYER_SIZE.x / 2.0f - BALL_RADIUS, -(BALL_RADIUS * 2.0f)), INITIAL_BALL_VELOCITY);
 }
-
-// Collision CheckCollision(BallObject &one, GameObject &two);
-// Direction VectorDirection(glm::vec2 closest);
-Direction VectorDirection(glm::vec2 target)
-{
-    glm::vec2 compass[] = {
-        glm::vec2(0.0f, 1.0f),	// up
-        glm::vec2(1.0f, 0.0f),	// right
-        glm::vec2(0.0f, -1.0f),	// down
-        glm::vec2(-1.0f, 0.0f)	// left
-    };
-    float max = 0.0f;
-    unsigned int best_match = -1;
-    for (unsigned int i = 0; i < 4; i++)
-    {
-        float dot_product = glm::dot(glm::normalize(target), compass[i]);
-        if (dot_product > max)
-        {
-            max = dot_product;
-            best_match = i;
-        }
-    }
-    return (Direction)best_match;
-}    
-Collision CheckCollision(glm :: vec2 &position , GameObject &two) // AABB - AABB collision
-{
-    // collision x-axis?
-    glm::vec2 center(position + BALL_RADIUS);
-    // calculate AABB info (center, half-extents)
-    glm::vec2 aabb_half_extents(two.Size.x / 2.0f, two.Size.y / 2.0f);
-    glm::vec2 aabb_center(
-        two.Position.x + aabb_half_extents.x, 
-        two.Position.y + aabb_half_extents.y
-    );
-    // get difference vector between both centers
-    glm::vec2 difference = center - aabb_center;
-    glm::vec2 clamped = glm::clamp(difference, -aabb_half_extents, aabb_half_extents);
-    // add clamped value to AABB_center and we get the value of box closest to circle
-    glm::vec2 closest = aabb_center + clamped;
-    // retrieve vector between center circle and closest point AABB and check if length <= radius
-    difference = closest - center;
-    if (glm::length(difference) <= BALL_RADIUS)
-        return std::make_tuple(true, VectorDirection(difference), difference);
-    else
-        return std::make_tuple(false, UP, glm::vec2(0.0f, 0.0f));
-    // return glm::length(difference) < BALL_RADIUS;
-}  
-void Game::DoCollisions()
-{
-    for (GameObject &box : this->Levels[this->Level].Bricks)
-    {
-        if (!box.Destroyed)
-        {
-            Collision collision = CheckCollision(Ball->Position, box);
-            if (std::get<0>(collision)) // if collision is true
-            {
-                // destroy block if not solid
-                if(box.val==4){
-                    box.ChangeSprite(ResourceManager::GetTexture("green"));
-                    this->Destroy=true;
-                }
-                if(box.val==2)
-                    this->Score++;
-                if(box.val==6 && this->Score)
-                    this->Score--;
-
-                if(box.val==3)
-                    this->Win=true;
-                if(box.val==5)
-                    this->Display=true;
-                if (!box.IsSolid && box.val!=4)
-                    box.Destroyed = true;
-
-                // collision resolution
-                Direction dir = std::get<1>(collision);
-                glm::vec2 diff_vector = std::get<2>(collision);
-                if (dir == LEFT || dir == RIGHT) // horizontal collision
-                {
-                    Ball->Velocity.x = -Ball->Velocity.x; // reverse horizontal velocity
-                    // relocate
-                    float penetration = Ball->Radius - std::abs(diff_vector.x);
-                    if (dir == LEFT)
-                        Ball->Position.x += penetration; // move ball to right
-                    else
-                        Ball->Position.x -= penetration; // move ball to left;
-                }
-                else // vertical collision
-                {
-                    Ball->Velocity.y = -Ball->Velocity.y; // reverse vertical velocity
-                    // relocate
-                    float penetration = Ball->Radius - std::abs(diff_vector.y);
-                    if (dir == UP)
-                        Ball->Position.y -= penetration; // move ball back up
-                    else
-                        Ball->Position.y += penetration; // move ball back down
-                }
-            }
-            collision = CheckCollision(Ball2->Position, box);
-            if (std::get<0>(collision)) // if collision is true
-            {
-                // if (!box.IsSolid)
-                //     box.Destroyed = true;
-                Direction dir = std::get<1>(collision);
-                glm::vec2 diff_vector = std::get<2>(collision);
-                if (dir == LEFT || dir == RIGHT) // horizontal collision
-                {
-                    Ball2->Velocity.x = -Ball2->Velocity.x; // reverse horizontal velocity
-                    // relocate
-                    float penetration = Ball2->Radius - std::abs(diff_vector.x);
-                    if (dir == LEFT)
-                        Ball2->Position.x += penetration; // move ball2 to right
-                    else
-                        Ball2->Position.x -= penetration; // move ball2 to left;
-                }
-                else // vertical collision
-                {
-                    Ball2->Velocity.y = -Ball2->Velocity.y; // reverse vertical velocity
-                    // relocate
-                    float penetration = Ball2->Radius - std::abs(diff_vector.y);
-                    if (dir == UP)
-                        Ball2->Position.y -= penetration; // move ball2 back up
-                    else
-                        Ball2->Position.y += penetration; // move ball2 back down
-                }
-            }
-            
-        }
-    }
-
-} 
-
-void Game :: Bfs(float dt){
-    // dt=0.0001;
-    // set<pair<float,pair<float,float>>>s;
-    // s.insert({0,{Ball2->Position.x,Ball2->Position.y}});
-    // map<pair<float,float>,float>mp;
-    // map<pair<float,float>,pair<float,float>>par;
+void Game:: BFS(float dt){
+    float velocity = (PLAYER_VELOCITY * dt)/10;
+    unsigned int height = 25;
+    unsigned int width = 25; // note we can index vector at [0] since this function is only called if height > 0
+    int x_coord = this->Width / width, y_coord= this->Height / height; 
+    int destx=(int )Ball->Position.x/(int )x_coord;
+    int desty=(int )Ball->Position.y/(int)y_coord;
+    int xx=(int )Ball2->Position.x/(int )x_coord;
+    int yy=(int )Ball2->Position.y/(int )y_coord;
+    float kx=xx*x_coord;
+    float yx=yy*y_coord;
+    // cout<<this->move<<"moveval"<<endl;
+    if(this->move==0){
+    set<pair<int ,pair<int ,int >>>s;
+    // cout<<x_coord<<" "<<y_coord<<endl;
+    // cout<<destx<<" "<<desty<<" "<<xx<<" "<<yy<<endl;
+    // cout<<(int )Ball2->Position.x/(int )x_coord<<" "<<(int)Ball2->Position.y/(int)y_coord<<endl;
+    // cout<<Ball2->Position.x<<"CCC "<<Ball2->Position.y<<endl;
+    map<pair<int,int>,int>mp;
+    map<pair<int,int>,pair<int,int>>par;
     int dx[]={0,0,1,-1};
     int dy[]={1,-1,0,0};
-    float velocity = PLAYER_VELOCITY * (dt/5);
-    // // cout<<dt<<" "<<PLAYER_VELOCITY<<endl;
-    // par[{Ball2->Position.x,Ball2->Position.y}]={-1,-1};
-    // bool flag=false;
-    // while(!s.empty()){
-    //     auto it=*s.begin();
-    //     float x=it.second.first;
-    //     float y=it.second.second;
-    //     s.erase(it);
-    //     for(int i=0;i<4;i++){
-    //         float nx=x+(dx[i]*velocity);
-    //         float ny=y+(dy[i]*velocity);
-    //         // cout<<nx<<" "<<ny<<endl;
-    //         if(nx>=0 && nx<this->Width && ny>=0 && ny<this->Height)
-    //         {
-    //             if(mp.find({nx,ny})==mp.end() || mp[{nx,ny}]>1+mp[{x,y}])
-    //             {
-    //                 glm::vec2 newpos(nx,ny);
-    //                 for (GameObject &box : this->Levels[this->Level].Bricks)
-    //                 {
-    //                     if (!box.Destroyed)
-    //                     {
-    //                         Collision collision = CheckCollision(newpos, box);
-    //                         if (std::get<0>(collision)) // if collision is true
-    //                             continue;
-    //                         else{
-    //                             mp[{nx,ny}]=mp[{x,y}]+1;
-    //                             par[{nx,ny}]={x,y};
-    //                             s.insert({mp[{nx,ny}],{nx,ny}});
-    //                             if(fabs(nx-Ball->Position.x)<=velocity && fabs(ny-Ball->Position.y)<=velocity){
-    //                                 flag=true;
-    //                                 par[{Ball->Position.x,Ball->Position.y}]={nx,ny};
-    //                                 mp[{Ball->Position.x,Ball->Position.y}]=mp[{nx,ny}]+1;
 
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-
-    //     }
-    //     if(flag)
-    //         break;
-    // }
-    // cout<<"here"<<endl;
-    // if(flag)
-    // {
-    //     float x=Ball->Position.x;
-    //     float y=Ball->Position.y;
-    //     pair <float,float> coord={Ball2->Position.x,Ball2->Position.y};
-    //     while(par[{x,y}]!=coord)
-    //     {
-    //         x=par[{x,y}].first;
-    //         y=par[{x,y}].second;
-    //     }
-    //     Ball2->Position.x=x;
-    //     Ball2->Position.y=y;
-
-    // }
-    float mn=1e5;
-    float x=Ball2->Position.x;
-    float y=Ball2->Position.y;
-    float xx=Ball->Position.x;
-    float yy=Ball->Position.y;
-    float tempx=-1;
-    float tempy=-1;
-
-    for(int i=0;i<4;i++){
-        // float nx =
-        float nx=x+(dx[i]*velocity);
-        float ny=y+(dy[i]*velocity);
-        if(nx>=0 && nx<this->Width && ny>=0 && ny<this->Height){
-            glm::vec2 newpos(nx,ny);
-            for (GameObject &box : this->Levels[this->Level].Bricks)
-            {
-                if (!box.Destroyed)
-                {
-                    Collision collision = CheckCollision(newpos, box);
-                    if (std::get<0>(collision)) // if collision is true
-                        continue;
-                    else{
-                        if((fabs(nx-xx) + fabs(ny-yy))<=mn){
-                            mn=(fabs(nx-xx) + fabs(ny-yy));
-                            tempx=nx;
-                            tempy=ny;
+    s.insert({0,{xx,yy}});
+    pair <int,int> initt={-1,-1};
+    par[{xx,yy}]=initt;
+    bool flag=false;
+    mp[{xx,yy}]=0;
+    while(!s.empty()){
+        auto it=*s.begin();
+        int  x=it.second.first;
+        int  y=it.second.second;
+        s.erase(it);
+        for(int i=0;i<4;i++){
+            int  nx=x+(dx[i]);
+            int  ny=y+(dy[i]);
+            // cout<<nx<<" "<<ny<<endl;
+            if(nx>=0 && nx<25 && ny>=0 && ny<25){
+                if(mp.find({nx,ny})==mp.end() || mp[{nx,ny}]>1+mp[{x,y}]){
+                    pair<int ,int > cd= {ny,nx};
+                    bool fnd=false;
+                    for(int i=0;i<this->coords.size();i++){
+                        if(this->coords[i]==cd){
+                            fnd=true;
+                        }
+                    }
+                    if (fnd){
+                        pair<int ,int > ncd= {x,y};
+                        if(s.find({mp[{nx,ny}],{nx,ny}})!=s.end())
+                        s.erase({mp[{nx,ny}],{nx,ny}});
+                        mp[{nx,ny}]=mp[{x,y}]+1;
+                        par[{nx,ny}]=ncd;
+                        
+                        s.insert({mp[{nx,ny}],{nx,ny}});
+                        if(destx==nx && desty==ny){
+                            flag=true;
                         }
                     }
                 }
+
             }
         }
+        // if(flag)
+        //     break;
     }
-    if(tempx!=-1 && tempy!=-1){
-        Ball2->Position.x=tempx;
-        Ball2->Position.y=tempy;
+    // cout<<flag<<"====C"<<endl;
+    if(flag)
+    {
+        int x=destx;
+        int y=desty;
+        // pair <float,float> coord={Ball2->Position.x,Ball2->Position.y};
+        pair <int,int>pp={xx,yy};
+        
+            // cout<<pp.first<<" "<<pp.second<<endl;
+            // cout<<x<<" "<<y<<endl;
+        while(par[{x,y}]!=pp )
+        {
+            // cout<<"innn";
+            pair<int,int> tp=par[{x,y}];
+            x=tp.first;
+            y=tp.second;
+        }
+        // cout<<Ball2->Position.x<<"AAA "<<Ball2->Position.y<<endl;
+        this->fx=x;
+        this->fy=y;
+        if(x!=xx)
+        {
+            if(x>xx &&  (Ball2->Position.x+velocity)<=this->Width){
+                // cout<<"INCX"<<endl;
+                // Ball2->Position.x+=velocity;
+                // bool ans=this->DoCollisionsimp();
+                // if(ans)
+                // Ball2->Position.x -= velocity;
+                this->move=1;
+                }
+            else if (x<xx &&  (Ball2->Position.x-velocity)>=0){
+                // cout<<"DECX"<<endl;
+                // Ball2->Position.x-=velocity;
+                // bool ans=this->DoCollisionsimp();
+                // if(ans)
+                // Ball2->Position.x += velocity;
+                this->move=2;
+            }
+        }
+        if(y!=yy)
+        {
+            if(y>yy &&  (Ball2->Position.y+velocity)<=this->Height){
+                // cout<<"INCY"<<endl;
+                // Ball2->Position.y+=velocity;
+                // bool ans=this->DoCollisionsimp();
+                // if(ans)
+                // Ball2->Position.y -= velocity;
+                this->move=3;
+            }
+            else if (y<yy &&  (Ball2->Position.y-velocity)>=0){
+                // cout<<"DECY"<<endl;
+                // Ball2->Position.y-=velocity;
+                // bool ans=this->DoCollisionsimp();
+                // if(ans)
+                // Ball2->Position.y += velocity;
+                this->move=4;
+            }
 
+        }
+        // cout<<Ball2->Position.x<<"BBB "<<Ball2->Position.y<<endl;
+
+        }
+    // }
     }
+    else if(this->move==1){
+        // float kkx=xx*x_coord;
+        // float yx=yy*y_coord;
+
+        if(xx!=this->fx)
+        {
+            Ball2->Position.x+=velocity;
+        }
+        // else if ()
+        else
+            this->move=0;
+    }
+    else if(this->move==2){
+
+        if((this->fx!=xx))
+            Ball2->Position.x-=velocity;
+        else if (this->fx==xx && (Ball2->Position.x-kx)>=8)
+            Ball2->Position.x-=velocity;
+        else
+            this->move=0;
+    }
+    else if(this->move==3){
+
+        if(this->fy!=yy)
+        {
+            Ball2->Position.y+=velocity;
+        }
+        else
+            this->move=0;
+    }
+    else if(this->move==4){
+
+        if(this->fy!=yy)
+        {
+            Ball2->Position.y-=velocity;
+        }
+        else if (this->fy==yy && (Ball2->Position.y-yx)>=1)
+            Ball2->Position.y-=velocity;
+        else
+            this->move=0;
+    }
+
 }
