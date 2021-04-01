@@ -42,7 +42,9 @@ Game::Game(unsigned int width, unsigned int height)
     this->move=0;
     this->task=0;
     this->light=true;
-}
+    this->dir=0;
+    this->dirv=false;
+}   
 
 Game::~Game()
 {
@@ -224,13 +226,21 @@ void Game::Init()
     Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
     // load ../source/textures
     ResourceManager::LoadTexture("../source/textures/download.png", false, "background");
-    ResourceManager::LoadTexture("../source/textures/pink_player.png", true, "face");
+    ResourceManager::LoadTexture("../source/textures/f1.png", true, "face");
+    ResourceManager::LoadTexture("../source/textures/f2.png", true, "face2");
+    ResourceManager::LoadTexture("../source/textures/f3.png", true, "face3");
+    ResourceManager::LoadTexture("../source/textures/f4.png", true, "face4");
+    ResourceManager::LoadTexture("../source/textures/r1.png", true, "fac");
+    ResourceManager::LoadTexture("../source/textures/r2.png", true, "fac2");
+    ResourceManager::LoadTexture("../source/textures/r3.png", true, "fac3");
+    ResourceManager::LoadTexture("../source/textures/r4.png", true, "fac4");
+
     ResourceManager::LoadTexture("../source/textures/block.png", false, "block");
     ResourceManager::LoadTexture("../source/textures/block_solid.png", false, "block_solid");
-    ResourceManager::LoadTexture("../source/textures/awesomeface.png", true, "paddle");
+    ResourceManager::LoadTexture("../source/textures/pink_player.png", true, "paddle");
     ResourceManager::LoadTexture("../source/textures/coin.jpg", false, "coin");
     // ResourceManager::LoadTexture("../source/textures/win.jpeg", false, "win");
-    ResourceManager::LoadTexture("../source/textures/win.jpeg", false, "win");
+    ResourceManager::LoadTexture("../source/textures/awesomeface.png", true, "win");
     ResourceManager::LoadTexture("../source/textures/red.jpeg", false, "red");
     ResourceManager::LoadTexture("../source/textures/green.jpeg", false, "green");
     ResourceManager::LoadTexture("../source/textures/poweron.jpeg", false, "poweron");
@@ -261,6 +271,26 @@ void Game::Update(float dt)
     this->BFS(dt);
     // cout<<Ball->Position.x<<" "<<Ball->Position.y<<endl;
     ResourceManager::GetShader("sprite").Use().SetVector3f("lightPos", Ball->Position.x,Ball->Position.y,0.0f);
+    if(!this->dirv){
+    if(this->dir%4==0)
+        Ball->ChangeSprite(ResourceManager::GetTexture("face"));
+    else if(this->dir%4==1)
+        Ball->ChangeSprite(ResourceManager::GetTexture("face2"));
+    else if(this->dir%4==2)
+        Ball->ChangeSprite(ResourceManager::GetTexture("face3"));
+    else if(this->dir%4==3)
+        Ball->ChangeSprite(ResourceManager::GetTexture("face4"));
+    }
+    else if(this->dirv){
+    if(this->dir%4==0)
+        Ball->ChangeSprite(ResourceManager::GetTexture("fac"));
+    else if(this->dir%4==1)
+        Ball->ChangeSprite(ResourceManager::GetTexture("fac2"));
+    else if(this->dir%4==2)
+        Ball->ChangeSprite(ResourceManager::GetTexture("fac3"));
+    else if(this->dir%4==3)
+        Ball->ChangeSprite(ResourceManager::GetTexture("fac4"));
+    }
 
     if(this->Win==true && this->State==GAME_ACTIVE){
         this->State = GAME_WIN;
@@ -299,6 +329,12 @@ void Game::Update(float dt)
     ResourceManager::GetShader("sprite").Use().SetFloat("lightCutOff", 5000.0f);
 
     }
+    if(this->task==2){
+        for (GameObject &box : this->Levels[this->Level].Bricks){
+            if(box.val==3)
+                box.Destroyed=false;
+       }
+    }
 
 
 }
@@ -316,7 +352,10 @@ void Game::ProcessInput(float dt)
                 bool ans=this->DoCollisions();
                 if(ans)
                 Ball->Position.x += velocity;
-
+                else {
+                this->dir++;
+                this->dirv=true;
+                }
             }
             
         }
@@ -327,6 +366,10 @@ void Game::ProcessInput(float dt)
                 bool ans=this->DoCollisions();
                 if(ans)
                 Ball->Position.x -= velocity;
+                else {
+                this->dir++;
+                this->dirv=false;
+                }
 
             }
             
@@ -338,6 +381,8 @@ void Game::ProcessInput(float dt)
                 bool ans=this->DoCollisions();
                 if(ans)
                 Ball->Position.y += velocity;
+                else 
+                this->dir++;
 
                 }
         }
@@ -348,6 +393,8 @@ void Game::ProcessInput(float dt)
                 bool ans=this->DoCollisions();
                 if(ans)
                 Ball->Position.y -= velocity;
+                else 
+                this->dir++;
 
             }
         }
@@ -385,8 +432,13 @@ void Game::Render()
         std::stringstream st; st << this->task;
         std::stringstream sti; sti << time_left;
 
+        if(!this->light){
+            Text->RenderText("Lives:" + sh.str()+ " Score:" +  ss.str()+ " Tasks: " + st.str()+ "/2 Time Left:" + sti.str()+ " Light: OFF" , 5.0f, 5.0f, 0.8f,glm::vec3(0.0f, 0.0f, 0.0f));
+        }
+        else{
+            Text->RenderText("Lives:" + sh.str()+ " Score:" +  ss.str()+ " Tasks: " + st.str()+ "/2 Time Left:" + sti.str() + " Light: ON" , 5.0f, 5.0f, 0.8f,glm::vec3(0.0f, 0.0f, 0.0f));
+        }
 
-        Text->RenderText("Lives:" + sh.str()+ " Score:" +  ss.str()+ " Tasks: " + st.str()+ "/2 Time Left:" + sti.str() , 5.0f, 5.0f, 1.0f,glm::vec3(1.0f, 0.5f, 0.0f));
     }
     if (this->State == GAME_WIN && this->Win)
         Text->RenderText("You WON!!!", 320.0f, this->Height / 2.0f - 20.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f));

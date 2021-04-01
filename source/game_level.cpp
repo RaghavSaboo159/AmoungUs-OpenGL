@@ -87,6 +87,7 @@ void GameLevel::init(std::vector<std::vector<unsigned int>> tileData, unsigned i
             else if (tileData[y][x] == 3){
                 GameObject obj(pos, size, ResourceManager::GetTexture("win"), glm::vec3(1.0f, 1.0f, 1.0f));
                 obj.val=3;
+                obj.Destroyed=true;
                 obj.IsSolid = false;
                 this->Bricks.push_back(obj);
             }

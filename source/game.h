@@ -67,6 +67,8 @@ public:
     clock_t                 begin;
     clock_t                 now;
     bool                    light;
+    unsigned int            dir;
+    bool                    dirv;
 
     vector<pair<int,int>>   coords;
     
