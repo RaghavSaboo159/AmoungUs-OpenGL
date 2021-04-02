@@ -221,30 +221,30 @@ void Game::Init()
     ResourceManager::GetShader("sprite").Use().SetInteger("image", 0);
     ResourceManager::GetShader("sprite").SetMatrix4("projection", projection);
     ResourceManager::GetShader("sprite").SetFloat("lightCutOff", 5000.0f);
-    ResourceManager::GetShader("sprite").SetVector3f("lightColor", 1.0f,1.0f,1.0f);
+    // ResourceManager::GetShader("sprite").SetVector3f("lightColor", 1.0f,1.0f,1.0f);
     // set render-specific controls
     Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
     // load ../source/textures
     ResourceManager::LoadTexture("../source/textures/download.png", false, "background");
-    ResourceManager::LoadTexture("../source/textures/f1.png", true, "face");
-    ResourceManager::LoadTexture("../source/textures/f2.png", true, "face2");
-    ResourceManager::LoadTexture("../source/textures/f3.png", true, "face3");
-    ResourceManager::LoadTexture("../source/textures/f4.png", true, "face4");
-    ResourceManager::LoadTexture("../source/textures/r1.png", true, "fac");
-    ResourceManager::LoadTexture("../source/textures/r2.png", true, "fac2");
-    ResourceManager::LoadTexture("../source/textures/r3.png", true, "fac3");
-    ResourceManager::LoadTexture("../source/textures/r4.png", true, "fac4");
+    ResourceManager::LoadTexture("../source/textures/f11.png", true, "face");
+    ResourceManager::LoadTexture("../source/textures/f12.png", true, "face2");
+    ResourceManager::LoadTexture("../source/textures/f13.png", true, "face3");
+    ResourceManager::LoadTexture("../source/textures/f14.png", true, "face4");
+    ResourceManager::LoadTexture("../source/textures/r11.png", true, "fac");
+    ResourceManager::LoadTexture("../source/textures/r12.png", true, "fac2");
+    ResourceManager::LoadTexture("../source/textures/r13.png", true, "fac3");
+    ResourceManager::LoadTexture("../source/textures/r14.png", true, "fac4");
 
     ResourceManager::LoadTexture("../source/textures/block.png", false, "block");
     ResourceManager::LoadTexture("../source/textures/block_solid.png", false, "block_solid");
     ResourceManager::LoadTexture("../source/textures/pink_player.png", true, "paddle");
-    ResourceManager::LoadTexture("../source/textures/coin.jpg", false, "coin");
+    ResourceManager::LoadTexture("../source/textures/coin.png", true, "coin");
     // ResourceManager::LoadTexture("../source/textures/win.jpeg", false, "win");
     ResourceManager::LoadTexture("../source/textures/awesomeface.png", true, "win");
-    ResourceManager::LoadTexture("../source/textures/red.jpeg", false, "red");
-    ResourceManager::LoadTexture("../source/textures/green.jpeg", false, "green");
-    ResourceManager::LoadTexture("../source/textures/poweron.jpeg", false, "poweron");
-    ResourceManager::LoadTexture("../source/textures/spike.png", false, "spike");
+    ResourceManager::LoadTexture("../source/textures/red.png", true, "red");
+    ResourceManager::LoadTexture("../source/textures/green.png", true, "green");
+    ResourceManager::LoadTexture("../source/textures/poweron.png", true, "poweron");
+    ResourceManager::LoadTexture("../source/textures/spike.png", true, "spike");
     
     Text = new TextRenderer(this->Width, this->Height);
     Text->Load("../source/fonts/OCRAEXT.TTF", 24);
@@ -258,7 +258,7 @@ void Game::Init()
     // if (random==0)
     // random++;
     glm::vec2 ballPos2 = glm::vec2(this->coords[random].second*32,this->coords[random].first*24);
-    Ball2 = new BallObject(ballPos2, BALL_RADIUS, INITIAL_BALL_VELOCITY,ResourceManager::GetTexture("paddle"));
+    Ball2 = new BallObject(ballPos2, 10.0f, INITIAL_BALL_VELOCITY,ResourceManager::GetTexture("paddle"));
     ResourceManager::GetShader("sprite").Use().SetVector3f("lightPos", Ball->Position.x,Ball->Position.y,0.0f);
 
     // Text = new TextRenderer(this->Width, this->Height);
@@ -418,7 +418,7 @@ void Game::Render()
         // draw background
         // ResourceManager::GetShader("sprite").SetVector3f("lightPos", Ball->Position.x,Ball->Position.y,0.0f);
 
-        Renderer->DrawSprite(ResourceManager::GetTexture("background"), glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f);
+        Renderer->DrawSprite(ResourceManager::GetTexture("background"), glm::vec2(0.0f, 0.0f), glm::vec2(this->Width, this->Height), 0.0f,glm::vec3(0.0f,0.0f,0.0f));
         // draw level
         this->Levels[this->Level].Draw(*Renderer);
         Ball->Draw(*Renderer);
@@ -426,17 +426,17 @@ void Game::Render()
             Ball2->Draw(*Renderer);
         this->now = clock();
         double elapsed_secs = double(this->now - this->begin) / CLOCKS_PER_SEC;
-        double time_left=100-elapsed_secs;
+        unsigned int time_left=100-elapsed_secs;
         std::stringstream sh; sh << this->Health;
         std::stringstream ss; ss << this->Score;
         std::stringstream st; st << this->task;
         std::stringstream sti; sti << time_left;
 
         if(!this->light){
-            Text->RenderText("Lives:" + sh.str()+ " Score:" +  ss.str()+ " Tasks: " + st.str()+ "/2 Time Left:" + sti.str()+ " Light: OFF" , 5.0f, 5.0f, 0.8f,glm::vec3(0.0f, 0.0f, 0.0f));
+            Text->RenderText("Lives:" + sh.str()+ " Score:" +  ss.str()+ " Tasks: " + st.str()+ "/2 Time Left:" + sti.str()+ " Light: OFF" , 5.0f, 5.0f, 0.8f,glm::vec3(1.0f, 1.0f, 1.0f));
         }
         else{
-            Text->RenderText("Lives:" + sh.str()+ " Score:" +  ss.str()+ " Tasks: " + st.str()+ "/2 Time Left:" + sti.str() + " Light: ON" , 5.0f, 5.0f, 0.8f,glm::vec3(0.0f, 0.0f, 0.0f));
+            Text->RenderText("Lives:" + sh.str()+ " Score:" +  ss.str()+ " Tasks: " + st.str()+ "/2 Time Left:" + sti.str() + " Light: ON" , 5.0f, 5.0f, 0.8f,glm::vec3(1.0f, 1.0f, 1.0f));
         }
 
     }
